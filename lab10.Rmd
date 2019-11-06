@@ -1,0 +1,316 @@
+---
+title: "Multivariate Visualizations"
+author: "Your Group's Names Here!"
+date: 'Due: November 12, 2019'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Evaluation Data -- Revisited 
+
+The data are gathered from end of semester student evaluations for a large 
+sample of professors from the University of Texas at Austin. These data are 
+merged with descriptors of the professors and the classes. In addition, six 
+students rated the professors' physical appearance. The result is a data frame 
+where each row contains a different course and each column has information on 
+either the course or the professor. 
+
+[Data are available through the Open Intro Statitics course webpage](https://www.openintro.org/stat/data/evals.php).
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse) 
+
+evals <- read_csv("data/evals.csv") %>% 
+  rename(sex = gender)
+
+```
+
+
+# Making a Scatterplot  
+
+A scatterplot is a natural way to visualize the relationship between two 
+quantitative variables, where the observations are plotted as ordered pairs 
+using some symbol.
+
+To make a scatterplot in `ggplot2`, we use the same `ggplot()` function to 
+specify our variables, but add a `geom_point()`  
+
+
+```{r}
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score)) + 
+  geom_point()
+```
+
+Notice, that it doesn't appear that the nearly 500 observations from the data 
+are being plotted, since many data points share the same scores. By changing 
+the geom to `geom_jitter()`, like we used to plot the data on top of the violin 
+plots, we can shuffle the data points just a bit to better see the underlying 
+structure. 
+
+
+__1. Change the plot above to use `geom_jitter()`.__ 
+__What relationship do you see?__ 
+
+
+## Adding Color 
+
+We've added color to our violin and boxplots by assigning the color aesthetic 
+to a variable in the data. Thus far, however, we have only assigned a 
+categorical variable to the color aesthetic.  
+
+## Discrete vs Continuous Variables 
+
+__2. Add a color aesthetic to the level of the course.__ 
+
+```{r}
+
+```
+
+__3. Now change the color aesthetic to be the percent of students who completed the evaluation.__ 
+__What changed?__ 
+
+
+```{r}
+
+```
+
+
+## Adding a Smoother
+
+Smoothers aid the eye in seeing patterns in the presence of overplotting. A 
+smoother adds a "trend" line to the plot.   
+
+To add a smoother, you simply add a `geom_smooth()` layer to your `ggplot`. 
+
+__4. Add a `geom_smooth()` layer to the plot below.__ 
+__What was the default smoothing method `ggplot` chose for you?__ 
+
+
+```{r}
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score)) + 
+  geom_jitter() 
+
+```
+
+### What method to choose? 
+
+When adding a smoother to a scatterplot, if you don't specify what type you 
+want, `ggplot` will choose one for you. It chooses bases on the following rules:  
+
+- "loess" is chosen for less than 1,000 observations  
+- "gam" is chosen otherwise  
+
+Note that "lm" (the smoother we want) is **never** a default choice. Therefore, 
+we have to specify a linear smoother, if this is what we want.  
+
+To specify a smoother, you use the `type` argument in `geom_smooth()` with a
+character vector of the smoother you want (e.g. "lm", "glm", "gam", "loess"). 
+
+__5. Change the smoother used above to be a linear model rather than a "loess".__
+
+
+### Smoothers for Groups  
+
+When you define aesthetics in the `ggplot()` function, those mappings hold for
+**every** aspect of your plot. 
+
+For example, if you chose to add a smoother to your plot of course evaluation 
+score versus average beauty score, you would get different lines depending on 
+where you define your color aesthetics. 
+
+**Globally** 
+
+```{r, message = FALSE}
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score, color = sex)) + 
+  geom_point() + 
+  geom_smooth()
+
+  ## trend line for each sex of professor -- because color is defined globally
+```
+
+
+**Locally**  
+
+```{r, message = FALSE}
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score)) + 
+  geom_point(aes(color = sex)) + 
+  geom_smooth()
+## one trend line -- no color defined globally
+```
+
+
+# Recreating the Visualizations from Lab 1 
+
+```{r, eval = FALSE}
+ggplot(mapping = aes(x = year, y = percent_yes, color = country)) +
+    geom_point() +
+    geom_smooth(method = "loess", se = FALSE) +
+    facet_wrap(~ issue) +
+    labs(
+      title = "Percentage of 'Yes' votes in the UN General Assembly",
+      subtitle = "1946 to 2015",
+      y = "% Yes",
+      x = "Year",
+      color = "Country"
+    )
+```
+
+
+Now that we have the necessary tools, let's digest what is going on in the plot 
+we created in Lab 1: 
+
+- Line 1 defines the variables that are being mapped to different parts of the 
+graph (aesthetics) -- x, y, and color have been specified  
+- Line 2 defines the type of plot to make -- here a scatterplot  
+- Line 3 adds a smoother to the plot and defines what type of smoother should be
+used -- "loess" 
+- Line 4 defines what variable to facet by -- issue  
+- Lines 5-11 define what labels should be added to the plot -- title, subtitle, 
+x, y, and color labels  
+
+
+__6. Using Lab 1 as a template, create a visualization of:__   
+
+- The relationship between a professor's course evaluation score & their average
+beauty score 
+- Include:  
+    * the raw data and linear smoothers
+    * different colors for different position rankings
+    * separate plots for different sexes of professors 
+
+```{r}
+
+```
+
+
+__7. Now add:__   
+
+- Nice x- and y-axis labels  
+- A title describing the data 
+
+
+# Simple Linear Regression Assumptions  
+
+Suppose instead that we are interested in modeling the relationship between 
+a professor's course evaluation score and the percentage of students who 
+completed the evaluation. Additionally, we are interested in knowing if this 
+relationship differs by the level of the course.  
+
+## Linearity   
+
+__8. Create a visualization that visualizes score as a function of percent eval.__ 
+__The plot should:__  
+
+- plot the raw data points  
+- differentiate the data for each group in a meaningful way -- colors, facets, etc. 
+
+
+
+## Normality of Residuals  
+
+Technically, all along we've been assuming that the residuals of our linear 
+model are normally distributed. 
+
+In Lab 4 we made a density plot of the residuals from a linear model, which is 
+exactly what we will do for a simple linear regression.  
+
+Recall that to obtain the residuals from the data model, we need to carry 
+out the following steps:  
+
+1. Fit a model using `lm`, with a quantitative response and a categorical 
+explanatory  
+2. Pull off the residuals from the model and store in a new variable in the 
+dataset  
+
+Once we've done these steps, we can create a density plot or histogram of the 
+model's residuals. Using this plot, we can assess the assumption of normality 
+of residuals!  
+
+```{r, warning = FALSE}
+# Fit a linear model to the data 
+evals_lm <- lm(score ~ bty_avg, data = evals)
+
+evals %>% 
+  # Create a new variable that's the residuals from the linear model 
+  mutate(residuals = residuals(evals_lm)) %>% 
+  # Plot a density plot of the residuals 
+  ggplot(aes(x = residuals)) +
+  # Choose your color! 
+  geom_density(fill = "tomato")
+
+# The standard base R plot for assessing normality of residuals  
+plot(evals_lm, which = 2)
+
+```
+
+__9. What do you see in the density plot of the residuals from the regression?__ 
+__How does this correspond with what you see in the Normal Q-Q plot?__ 
+
+
+## Constant Variance  
+
+Another assumption of simple linear regression is that the variability 
+across the range of x-values is **the same**. 
+
+
+
+__10. Using the plot you made for Question 8, discuss what you see in the 
+variability of scores across the range of the percentage of students who 
+completed the evaluation?__ 
+
+
+
+# Optional Topic -- Changing Colors in `ggplot` 
+
+The built in `ggplot` color scheme may not be what you were looking for, but 
+don't worry! There are many other color palettes available to use!  
+
+You can change the colors used by `ggplot()` a few different ways.  
+
+1. Add the `scale_color_manual()` or `scale_fill_manual()` functions to your 
+plot and directly specify the colors you want to use, by:  
+- defining a vector of colors right there (e.g. c("blue", "black", "red", "green")) 
+- creating a vector of colors and storing it in an object and calling on it 
+(see below)
+
+```{r, message = FALSE}
+# The palette with grey:
+cbPalette_grey <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+                    "#0072B2", "#D55E00", "#CC79A7")
+
+# The palette with black:
+cbbPalette_blk <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442",
+                    "#0072B2", "#D55E00", "#CC79A7")
+
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score)) + 
+  geom_point(aes(color = sex)) + 
+  geom_smooth() + 
+  scale_color_manual(values = cbPalette_grey)
+```
+
+2. Install a package and use it's available color scales. Popular options 
+include:  
+- `RColorBrewer`: using `scale_fill_brewer()` or `scale_colour_brewer()` 
+- `viridis`: using `scale_colour_viridis_d()` for discrete data, 
+`scale_colour_viridis_c()` for continuous data, with an inside 
+argument of `option = <COLOR>` for your chosen color scheme  
+- `ggsci`: using `scale_color_<PALNAME>()` or `scale_fill_<PALNAME>()`, where
+you specify the name of the palette you wish to use (e.g. `scale_color_aaas()`)
+
+
+```{r, message = FALSE}
+evals %>% 
+  ggplot(aes(x = bty_avg, y = score)) + 
+  geom_point(aes(color = sex)) + 
+  geom_smooth() + 
+  scale_color_viridis_d()
+```
+
+__Bonus: Change the color of the plot you made for Questions 6 & 7.__ 
+
